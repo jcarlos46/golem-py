@@ -7,8 +7,8 @@ An animated anthropomorphic being, created entirely from inanimate matter.
 
 Usage
 -----
-
-	python golem.py <source> [<dest>]
+	git clone git://github.com/joaosoda/golem-py.git golem
+	python golem <source> [<dest>]
 
 config.json
 -----------

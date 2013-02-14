@@ -9,10 +9,13 @@ def config(src):
 	return j
 
 def ignore(suffix,src): #monting list of ignored files
-	c = config(src)
-	ignore = [c['self']]
-	for i in c['Ignore']:
-		ignore.append(os.path.join(suffix,i))
+	ignore = []
+	cfg = os.path.join(src,"config.json")
+	if os.path.exists(cfg):
+		c = config(src)
+		ignore = [c['self']]
+		for i in c['Ignore']:
+			ignore.append(os.path.join(suffix,i))
 	return ignore
 
 def args():
