@@ -1,21 +1,33 @@
-import os, zipfile, time, utils
+import os
+import zipfile
 
-def zip(src, dst):
-	zipname = os.path.abspath(dst) + "-" + time.strftime("%Y%m%d-%H%M%S") + ".zip"
-	ignore = utils.ignore(dst,src)
-	paths = []
-	if os.path.exists(dst): #zipping dstination files
-		print("Creating " + zipname + "...")
-		zip = zipfile.ZipFile(zipname, "w")
-		for root, dirs, files in os.walk(dst):
-			if root not in ignore:
-				for file in files:
-					if os.path.join(dst,file) not in ignore:
-						print("Zipping " + os.path.join(root, file) + "...")
-						zip.write(os.path.join(root, file))
-
+def local_zip(root, paths, zipname):
+	if os.path.exists(root):
+		zip = zipfile.ZipFile(zipname, 'w')
+		for file in paths:
+			if os.path.isfile(file):
+				zip.write(file)
 		zip.close()
 
-if __name__ == "__main__":
-	args = utils.args()
-	copy(args['src'],args['dst'])
+def remote_zip(sftp, root, paths, zipname):
+	if remote_isdir(sftp, root):
+		zip = zipfile.ZipFile(zipname, 'w')
+		os.mkdir('.tmp')
+		os.chdir('.tmp')
+		for file in paths:
+			if not remote_isdir(sftp, file):
+				data = remote_copy(sftp, file)
+				f = open(file.replace(root + os.sep, ''), 'w')
+				f.write(data)
+				f.close()
+				zip.write(f.name)
+				os.remove(f.name)
+		zip.close()
+		os.chdir('..')
+		os.rmdir('.tmp')
+
+def zip(root, paths, zipname, sftp=None):
+	if sftp:
+		remote_zip(sftp, root, paths, zipname)
+	else:
+		local_zip(root, paths, zipname)

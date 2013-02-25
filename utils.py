@@ -1,32 +1,22 @@
-import os, json, sys
+import os
+from stat import S_ISDIR
 
-def config(src):
-	cfg = os.path.join(src,"config.json")
-	f = open(cfg)
-	j = json.load(f)
-	j['self'] = cfg
-	f.close()
-	return j
+def remote_isdir(sftp, path):
+	try:
+		return S_ISDIR(sftp.stat(path).st_mode)
+	except IOError:
+		return False
 
-def ignore(suffix,src): #monting list of ignored files
-	ignore = []
-	cfg = os.path.join(src,"config.json")
-	if os.path.exists(cfg):
-		c = config(src)
-		ignore = [c['self']]
-		for i in c['Ignore']:
-			ignore.append(os.path.join(suffix,i))
-	return ignore
-
-def args():
-	src = sys.argv[1]
-	cfg = os.path.join(src,"config.json")
-	if os.path.exists(cfg):
-		c = config(src)
-		if 'Destination' in c.keys():
-			dst = c['Destination']
-		else:
-			dst = sys.argv[2]
+def isdir(file, sftp=None):
+	if sftp:
+		return remote_isdir(sftp, file)
 	else:
-		dst = sys.argv[2]
-	return {'src':src,'dst':dst}
+		return os.path.isdir(file)
+
+def mkdir(path, sftp=None):
+	if sftp:
+		if not isdir(path, sftp):
+			sftp.mkdir(path)
+	else:
+		if not isdir(path):
+			os.mkdir(path)
